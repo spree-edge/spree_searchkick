@@ -1,6 +1,15 @@
 module Spree::ProductDecorator
   def self.prepended(base)
-    base.searchkick callbacks: :async, word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:search_index)
+    base.searchkick callbacks: :async, word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:searchkick_index)
+
+    base.scope :search_import, lambda {
+      includes(
+        :orders,
+        taxons: :taxonomy,
+        master: :default_price,
+        product_properties: :property
+      )
+    }
 
     def base.autocomplete_fields
       [:name]
@@ -41,6 +50,8 @@ module Spree::ProductDecorator
   end
 
   def search_data
+    all_taxons = taxon_and_ancestors
+
     json = {
       name: name,
       description: description,
@@ -50,8 +61,8 @@ module Spree::ProductDecorator
       price: price,
       currency: currency,
       conversions: orders.complete.count,
-      taxon_ids: taxon_and_ancestors.map(&:id),
-      taxon_names: taxon_and_ancestors.map(&:name),
+      taxon_ids: all_taxons.map(&:id),
+      taxon_names: all_taxons.map(&:name),
     }
 
     loaded(:product_properties, :property).each do |prod_prop|
