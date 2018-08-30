@@ -1,13 +1,6 @@
 module Spree::ProductDecorator
   def self.prepended(base)
-    base.searchkick word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:search_index)
-
-    base.scope :search_import, lambda {
-      includes(
-        :orders,
-        master: :default_price
-      )
-    }
+    base.searchkick callbacks: :async, word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:search_index)
 
     def base.autocomplete_fields
       [:name]
