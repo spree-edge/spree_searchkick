@@ -4,8 +4,7 @@ module Spree::ProductDecorator
 
     base.scope :search_import, lambda {
       includes(
-        taxons: :taxonomy,
-        product_properties: :property,
+        :orders,
         master: :default_price
       )
     }
