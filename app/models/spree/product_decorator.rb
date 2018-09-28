@@ -2,6 +2,14 @@ module Spree::ProductDecorator
   def self.prepended(base)
     base.searchkick word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:search_index)
 
+    base.scope :search_import, lambda {
+      includes(
+        taxons: :taxonomy,
+        product_properties: :property,
+        master: :default_price
+      )
+    }
+
     def base.autocomplete_fields
       [:name]
     end
@@ -54,11 +62,11 @@ module Spree::ProductDecorator
       taxon_names: taxon_and_ancestors.map(&:name),
     }
 
-    Spree::Property.all.each do |prop|
-      json.merge!(Hash[prop.name.downcase, property(prop.name)])
+    loaded(:product_properties, :property).each do |prod_prop|
+      json.merge!(Hash[prod_prop.property.name.downcase, prod_prop.value])
     end
 
-    Spree::Taxonomy.all.each do |taxonomy|
+    loaded(:taxons, :taxonomy).group_by(&:taxonomy).map do |taxonomy, taxons|
       json.merge!(Hash["#{taxonomy.name.downcase}_ids", taxon_by_taxonomy(taxonomy.id).map(&:id)])
     end
 
@@ -67,6 +75,11 @@ module Spree::ProductDecorator
 
   def taxon_by_taxonomy(taxonomy_id)
     taxons.joins(:taxonomy).where(spree_taxonomies: { id: taxonomy_id })
+  end
+
+  def loaded(prop, incl)
+    relation = send(prop)
+    relation.loaded? ? relation : relation.includes(incl)
   end
 end
 
