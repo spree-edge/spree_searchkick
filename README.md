@@ -1,7 +1,7 @@
 Spree + Searchkick
 ===============
 
-[![Build Status](https://travis-ci.org/ronzalo/spree_searchkick.svg?branch=master)](https://travis-ci.org/ronzalo/spree_searchkick)
+[![Build Status](https://travis-ci.org/spree-contrib/spree_searchkick.svg?branch=master)](https://travis-ci.org/spree-contrib/spree_searchkick)
 
 Add [Elasticsearch](http://elastic.co) goodies to Spree, powered by [searchkick](http://searchkick.org)
 
@@ -10,9 +10,8 @@ Features
 
 * Full search (keyword, in_taxon)
 * Taxons Aggregations (aggs)
-* Search Autocomplete ([Typeahead](https://twitter.github.io/typeahead.js/))
+* Search Autocomplete endpoint (`/autocomplete/products?keywords=example`)
 * Added `/best` route, where best selling products are boosted in first page
-
 
 Installation
 ------------
@@ -21,7 +20,7 @@ Add searchkick and spree_searchkick to your Gemfile:
 
 ```ruby
 gem 'searchkick'
-gem 'spree_searchkick', github: 'ronzalo/spree_searchkick', branch: '3-1-stable'
+gem 'spree_searchkick', github: 'spree-contrib/spree_searchkick'
 ```
 
 Bundle your dependencies and run the installation generator:
@@ -58,4 +57,4 @@ Simply add this require statement to your spec_helper:
 require 'spree_searchkick/factories'
 ```
 
-Copyright (c) 2015 Gonzalo Moreno, released under the New BSD License
+Copyright (c) 2015-2020 Gonzalo Moreno & [other contributors](https://github.com/spree-contrib/spree_searchkick/graphs/contributors), released under the New BSD License
