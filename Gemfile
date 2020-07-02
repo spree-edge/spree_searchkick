@@ -1,9 +1,11 @@
 source 'https://rubygems.org'
 
-gem 'spree', github: 'spree/spree', branch: '4-0-stable'
-gem 'spree_auth_devise', github: 'spree/spree_auth_devise'
+git_source(:github) do |repo_name|
+  repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include?('/')
+  "https://github.com/#{repo_name}.git"
+end
 
-# Provides searchkick functionalities for testing
+gem 'spree', github: 'spree/spree'
 gem 'searchkick'
 
 gem 'rails-controller-testing'
