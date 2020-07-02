@@ -13,14 +13,14 @@ RSpec.configure do |config|
   config.before do
     SEARCHABLE_MODELS.each do |model|
       model.reindex
-      model.searchkick_index.refresh
+      model.search_index.refresh
     end
   end
 
   # delete indices for searchable models to keep clean state between tests
   config.after do
     SEARCHABLE_MODELS.each do |model|
-      model.searchkick_index.delete
+      model.search_index.delete
     end
   end
 end
