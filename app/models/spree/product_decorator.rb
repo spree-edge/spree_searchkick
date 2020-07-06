@@ -1,6 +1,15 @@
 module Spree::ProductDecorator
   def self.prepended(base)
-    base.searchkick word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:search_index)
+    base.searchkick callbacks: :async, word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:searchkick_index)
+
+    base.scope :search_import, lambda {
+      includes(
+        :orders,
+        taxons: :taxonomy,
+        master: :default_price,
+        product_properties: :property
+      )
+    }
 
     def base.autocomplete_fields
       [:name]
@@ -41,6 +50,8 @@ module Spree::ProductDecorator
   end
 
   def search_data
+    all_taxons = taxon_and_ancestors
+
     json = {
       name: name,
       description: description,
@@ -50,23 +61,34 @@ module Spree::ProductDecorator
       price: price,
       currency: currency,
       conversions: orders.complete.count,
-      taxon_ids: taxon_and_ancestors.map(&:id),
-      taxon_names: taxon_and_ancestors.map(&:name),
+      taxon_ids: all_taxons.map(&:id),
+      taxon_names: all_taxons.map(&:name),
     }
 
-    Spree::Property.all.each do |prop|
-      json.merge!(Hash[prop.name.downcase, property(prop.name)])
+    loaded(:product_properties, :property).each do |prod_prop|
+      json.merge!(Hash[prod_prop.property.name.downcase, prod_prop.value])
     end
 
-    Spree::Taxonomy.all.each do |taxonomy|
+    loaded(:taxons, :taxonomy).group_by(&:taxonomy).map do |taxonomy, taxons|
       json.merge!(Hash["#{taxonomy.name.downcase}_ids", taxon_by_taxonomy(taxonomy.id).map(&:id)])
     end
+
+    json.merge!(index_data)
 
     json
   end
 
+  def index_data
+    {}
+  end
+
   def taxon_by_taxonomy(taxonomy_id)
     taxons.joins(:taxonomy).where(spree_taxonomies: { id: taxonomy_id })
+  end
+
+  def loaded(prop, incl)
+    relation = send(prop)
+    relation.loaded? ? relation : relation.includes(incl)
   end
 end
 
