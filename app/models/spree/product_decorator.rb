@@ -4,10 +4,11 @@ module Spree::ProductDecorator
 
     base.scope :search_import, lambda {
       includes(
-        :orders,
+        :option_types,
         taxons: :taxonomy,
         master: :default_price,
-        product_properties: :property
+        product_properties: :property,
+        variants: :option_values
       )
     }
 
@@ -63,10 +64,22 @@ module Spree::ProductDecorator
       conversions: orders.complete.count,
       taxon_ids: all_taxons.map(&:id),
       taxon_names: all_taxons.map(&:name),
+      option_type_ids: option_type_ids,
+      option_type_names: option_types.pluck(:name),
+      option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq
     }
 
     loaded(:product_properties, :property).each do |prod_prop|
       json.merge!(Hash[prod_prop.property.name.downcase, prod_prop.value])
+    end
+
+    option_types.each do |option_type|
+      json.merge!(
+        Hash[
+          option_type.name.downcase, 
+          variants.map { |v| v.option_values.find_by(option_type: option_type)&.name }.compact.uniq
+        ]
+      )
     end
 
     loaded(:taxons, :taxonomy).group_by(&:taxonomy).map do |taxonomy, taxons|
