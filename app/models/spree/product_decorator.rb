@@ -5,6 +5,7 @@ module Spree::ProductDecorator
     base.scope :search_import, lambda {
       includes(
         :option_types,
+        :variants_including_master,
         taxons: :taxonomy,
         master: :default_price,
         product_properties: :property,
@@ -54,6 +55,7 @@ module Spree::ProductDecorator
     all_taxons = taxon_and_ancestors
 
     json = {
+      id: id,
       name: name,
       description: description,
       active: available?,
@@ -66,7 +68,8 @@ module Spree::ProductDecorator
       taxon_names: all_taxons.map(&:name),
       option_type_ids: option_type_ids,
       option_type_names: option_types.pluck(:name),
-      option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq
+      option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq,
+      skus: variants_including_master.pluck(:sku)
     }
 
     loaded(:product_properties, :property).each do |prod_prop|
