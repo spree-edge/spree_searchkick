@@ -1,6 +1,18 @@
 module Spree::ProductDecorator
   def self.prepended(base)
-    base.searchkick callbacks: :async, word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:searchkick_index)
+    base.searchkick(
+      callbacks: :async,
+      word_start: [:name],
+      settings: { number_of_replicas: 0 },
+      merge_mappings: true,
+      mappings: {
+        properties: {
+          props: {
+            type: 'nested'
+          }
+        }
+      }
+    ) unless respond_to?(:searchkick_index)
 
     base.scope :search_import, lambda {
       includes(
@@ -69,7 +81,8 @@ module Spree::ProductDecorator
       option_type_ids: option_type_ids,
       option_type_names: option_types.pluck(:name),
       option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq,
-      skus: variants_including_master.pluck(:sku)
+      skus: variants_including_master.pluck(:sku),
+      properties: properties.map { |prop| { id: prop.id, name: prop.name, value: property(prop.name) } }
     }
 
     loaded(:product_properties, :property).each do |prod_prop|
@@ -79,7 +92,7 @@ module Spree::ProductDecorator
     option_types.each do |option_type|
       json.merge!(
         Hash[
-          option_type.name.downcase, 
+          option_type.name.downcase,
           variants.map { |v| v.option_values.find_by(option_type: option_type)&.name }.compact.uniq
         ]
       )
