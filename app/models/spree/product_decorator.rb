@@ -12,7 +12,7 @@ module Spree::ProductDecorator
           }
         }
       }
-    ) unless respond_to?(:searchkick_index)
+    ) unless base.respond_to?(:searchkick_index)
 
     base.scope :search_import, lambda {
       includes(
