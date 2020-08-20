@@ -82,7 +82,7 @@ module Spree::ProductDecorator
       option_type_names: option_types.pluck(:name),
       option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq,
       skus: variants_including_master.pluck(:sku),
-      properties: properties.map { |prop| { id: prop.id, name: prop.name, value: property(prop.name) } }
+      properties: properties.filterable.map { |prop| { id: prop.id, name: prop.name, value: property(prop.name) } }
     }
 
     loaded(:product_properties, :property).each do |prod_prop|
