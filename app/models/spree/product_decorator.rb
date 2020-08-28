@@ -7,7 +7,7 @@ module Spree::ProductDecorator
       merge_mappings: true,
       mappings: {
         properties: {
-          props: {
+          properties: {
             type: 'nested'
           }
         }
@@ -65,7 +65,7 @@ module Spree::ProductDecorator
 
   def search_data
     all_taxons = taxon_and_ancestors
-
+    filtered_option_types = option_types.filterable.pluck(:id, :name)
     json = {
       id: id,
       name: name,
@@ -78,8 +78,8 @@ module Spree::ProductDecorator
       conversions: orders.complete.count,
       taxon_ids: all_taxons.map(&:id),
       taxon_names: all_taxons.map(&:name),
-      option_type_ids: option_type_ids,
-      option_type_names: option_types.pluck(:name),
+      option_type_ids: filtered_option_types.map(&:first),
+      option_type_names: filtered_option_types.map(&:last),
       option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq,
       skus: variants_including_master.pluck(:sku),
       properties: properties.filterable.map { |prop| { id: prop.id, name: prop.name, value: property(prop.name) } }
