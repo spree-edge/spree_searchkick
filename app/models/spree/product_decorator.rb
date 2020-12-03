@@ -64,29 +64,46 @@ module Spree::ProductDecorator
   end
 
   def search_data
-    all_taxons = taxons.map { |t| t.self_and_ancestors.pluck(:id, :name) }.flatten.uniq
+    all_taxons = taxons.flat_map { |t| t.self_and_ancestors.pluck(:id, :name) }.uniq
     filtered_option_types = option_types.filterable.pluck(:id, :name)
+
+    filterable_properties = properties.filterable.pluck(:id, :name)
+
+    properties_values = product_properties.where(property_id: filterable_properties.map(&:first)).pluck(:property_id, :value)
+
+    filterable_properties = filterable_properties.map do |prop|
+      {
+        id: prop.first,
+        name: prop.last,
+        value: properties_values.find { |pv| pv.first == prop.first }&.last
+      }
+    end
+
     json = {
       id: id,
       name: name,
+      slug: slug,
       description: description,
       active: available?,
+      in_stock: in_stock?,
       created_at: created_at,
       updated_at: updated_at,
       price: price,
       currency: currency,
       conversions: orders.complete.count,
-      taxon_ids: all_taxons.map(&:id),
-      taxon_names: all_taxons.map(&:name),
+      taxon_ids: all_taxons.map(&:first),
+      taxon_names: all_taxons.map(&:last),
       option_type_ids: filtered_option_types.map(&:first),
       option_type_names: filtered_option_types.map(&:last),
       option_value_ids: variants.map { |v| v.option_value_ids }.flatten.compact.uniq,
       skus: variants_including_master.pluck(:sku),
-      properties: properties.filterable.map { |prop| { id: prop.id, name: prop.name, value: property(prop.name) } }
+      property_ids: filterable_properties.map { |p| p[:id] },
+      property_names: filterable_properties.map { |p| p[:name] },
+      total_on_hand: total_on_hand
     }
 
-    loaded(:product_properties, :property).each do |prod_prop|
-      json.merge!(Hash[prod_prop.property.name.downcase, prod_prop.value])
+    filterable_properties.each do |prop|
+      json.merge!(Hash[prop[:name].downcase, prop[:value]])
     end
 
     option_types.each do |option_type|
@@ -98,13 +115,6 @@ module Spree::ProductDecorator
       )
     end
 
-    # we've already loaded taxons into memory on line 66
-    taxonomies_ids = taxons.pluck(:taxonomy_id).uniq
-    taxonomies = Spree::Taxonomy.where(taxonomy_id: taxonomies_ids).pluck(:id, :name)
-    taxonomies.each do |taxonomy|
-      json.merge!(Hash["#{taxonomy.last.downcase}_ids", taxons.select { |t| t.taxonomy_id = taxonomy.first }.map(:id)])
-    end
-
     json.merge!(index_data)
 
     json
@@ -112,11 +122,6 @@ module Spree::ProductDecorator
 
   def index_data
     {}
-  end
-
-  def loaded(prop, incl)
-    relation = send(prop)
-    relation.loaded? ? relation : relation.includes(incl)
   end
 end
 
