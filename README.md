@@ -19,7 +19,6 @@ Installation
 Add searchkick and spree_searchkick to your Gemfile:
 
 ```ruby
-gem 'searchkick'
 gem 'spree_searchkick', github: 'spree-contrib/spree_searchkick'
 ```
 
