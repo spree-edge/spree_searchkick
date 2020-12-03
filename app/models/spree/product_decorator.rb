@@ -64,7 +64,7 @@ module Spree::ProductDecorator
   end
 
   def search_data
-    all_taxons = taxon_and_ancestors
+    all_taxons = taxons.map { |t| t.self_and_ancestors.pluck(:id, :name) }.flatten.uniq
     filtered_option_types = option_types.filterable.pluck(:id, :name)
     json = {
       id: id,
@@ -98,8 +98,11 @@ module Spree::ProductDecorator
       )
     end
 
-    loaded(:taxons, :taxonomy).group_by(&:taxonomy).map do |taxonomy, taxons|
-      json.merge!(Hash["#{taxonomy.name.downcase}_ids", taxon_by_taxonomy(taxonomy.id).map(&:id)])
+    # we've already loaded taxons into memory on line 66
+    taxonomies_ids = taxons.pluck(:taxonomy_id).uniq
+    taxonomies = Spree::Taxonomy.where(taxonomy_id: taxonomies_ids).pluck(:id, :name)
+    taxonomies.each do |taxonomy|
+      json.merge!(Hash["#{taxonomy.last.downcase}_ids", taxons.select { |t| t.taxonomy_id = taxonomy.first }.map(:id)])
     end
 
     json.merge!(index_data)
@@ -109,10 +112,6 @@ module Spree::ProductDecorator
 
   def index_data
     {}
-  end
-
-  def taxon_by_taxonomy(taxonomy_id)
-    taxons.joins(:taxonomy).where(spree_taxonomies: { id: taxonomy_id })
   end
 
   def loaded(prop, incl)
