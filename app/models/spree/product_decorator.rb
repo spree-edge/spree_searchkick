@@ -105,6 +105,7 @@ module Spree::ProductDecorator
       option_type_names: filterable_option_types.map(&:last),
       option_value_ids: option_value_ids,
       skus: all_variants.map(&:last),
+      properties: filterable_properties,
       property_ids: filterable_properties.map { |p| p[:id] },
       property_names: filterable_properties.map { |p| p[:name] },
       total_on_hand: total_on_hand

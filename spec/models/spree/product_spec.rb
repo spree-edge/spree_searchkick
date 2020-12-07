@@ -39,6 +39,7 @@ RSpec.describe Spree::Product, type: :model do
     let!(:taxon) { create(:taxon, name: 'T-shirts', taxonomy: taxonomy) }
     let!(:option_type) { create(:option_type, name: 'Size', filterable: true) }
     let(:option_value) { create(:option_value, option_type: option_type, name: 'xs', presentation: 'XS')}
+    let(:property_value) { '10in' }
 
     let(:product) do
       create(
@@ -63,6 +64,7 @@ RSpec.describe Spree::Product, type: :model do
         slug: product.slug,
         created_at: product.created_at,
         updated_at: product.updated_at,
+        properties: [{ id: property.id, name: property.name, value: property_value}],
         property_ids: [property.id],
         property_names: ['Length'],
         taxon_ids: [taxonomy.root.id, taxon.id],
@@ -78,7 +80,7 @@ RSpec.describe Spree::Product, type: :model do
 
     before do
       product.option_types << option_type
-      product.set_property(property.name, '10in')
+      product.set_property(property.name, property_value)
       product.taxons << taxon
       variant = create(:variant, sku: 'SKU200', product: product, option_values: [option_value])
       variant.stock_items.first.set_count_on_hand(10)
