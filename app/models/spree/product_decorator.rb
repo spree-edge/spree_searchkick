@@ -61,6 +61,12 @@ module Spree::ProductDecorator
         price: { not: nil },
       }
     end
+
+    # Searchkick can't be reinitialized, this method allow to change options without it
+    # ex add_searchkick_option { settings: { "index.mapping.total_fields.limit": 2000 } }
+    def base.add_searchkick_option(option)
+      base.class_variable_set(:@@searchkick_options, base.searchkick_options.deep_merge(option))
+    end
   end
 
   def search_data
