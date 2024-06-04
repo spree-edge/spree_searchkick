@@ -20,7 +20,7 @@ module Spree
           where: where_query,
           aggs: attributes,
           smart_aggs: true,
-          order: sorted,
+          order: order_by,
           page: curr_page,
           per_page: per_page,
         )
@@ -131,7 +131,7 @@ module Spree
         end
 
         @properties[:in_stock] = params[:in_stock].present? && params[:pot_size_ids].blank? ? [true] : []
-        @properties[:order_by] = params[:sort_by].present? ? order_by_translator(params[:sort_by]) : 'name_sort ASC'
+        @properties[:order_by] = params[:sort_by].present? ? order_by_translator(params[:sort_by]) : { name: :asc }
       end
 
       def in_stock_by_pot_size?
@@ -149,7 +149,7 @@ module Spree
         when 'created_at'
           { created_at: :desc }
         else
-          { name_sort: :asc }
+          { name: :asc }
         end
       end
 
