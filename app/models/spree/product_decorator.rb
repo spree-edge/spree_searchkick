@@ -83,13 +83,28 @@ module Spree::ProductDecorator
       in_stock: in_stock?,
       created_at: created_at,
       updated_at: updated_at,
-      price: price,
       currency: currency,
       conversions: orders.complete.count,
       taxon_ids: all_taxons.map(&:first),
       taxon_names: all_taxons.map(&:last),
       skus: all_variants.map(&:last),
-      total_on_hand: total_on_hand
+      total_on_hand: total_on_hand,
+      pot_size_ids: pot_size_ids,
+      feature_ids: feature_ids,
+      flowering_season_id: plant&.flowering_season_id,
+      month_ids: month_ids,
+      available: available,
+      planting_position_id: plant&.planting_position_id,
+      soil_type_id: plant&.soil_type_id,
+      spread_id: plant&.spread_id,
+      colour_id: plant&.colour_id,
+      height_id: plant&.height_id,
+      in_stock_pot_size_ids: in_stock_pot_size_ids,
+      stock_available_state: stock_available_state,
+      price: sphinx_price,
+      available_on: available_on,
+      created_at: created_at,
+      updated_at: updated_at
     }
 
     json.merge!(option_types_for_es_index(all_variants))
