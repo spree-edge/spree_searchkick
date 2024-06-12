@@ -102,9 +102,7 @@ module Spree::ProductDecorator
       in_stock_pot_size_ids: in_stock_pot_size_ids,
       stock_available_state: stock_available_state,
       price: sphinx_price,
-      available_on: available_on,
-      created_at: created_at,
-      updated_at: updated_at
+      available_on: available_on
     }
 
     json.merge!(option_types_for_es_index(all_variants))
