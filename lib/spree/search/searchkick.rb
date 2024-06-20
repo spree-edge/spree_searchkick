@@ -99,6 +99,17 @@ module Spree
         query
       end
 
+      def retrieve_letter_products
+        query = Arel.sql("spree_products.name LIKE '#{params[:letter]}%'")
+        @products = extended_base_scope&.joins(:taxons)&.where(['spree_taxons.id IN (?)', [Spree::Taxon.find_by(permalink: 'plants').id]])&.where(query)&.order(:name)
+
+        unless Spree::Config.show_products_without_price
+          @products = @products.where('spree_prices.amount IS NOT NULL')
+                               .where('spree_prices.currency' => current_currency)
+        end
+        @products
+      end
+
       def prepare(params)
         super
         @properties[:conversions] = params[:conversions]
