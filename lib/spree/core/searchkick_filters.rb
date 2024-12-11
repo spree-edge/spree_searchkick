@@ -11,6 +11,10 @@ module Spree
           es_filters << process_filter(property.filter_name, :property, aggregations[property.filter_name])
         end
 
+        Spree::OptionType.filterable.each do |option_type|
+          es_filters << process_filter(option_type.filter_name, :option_type, aggregations[option_type.filter_name])
+        end
+
         es_filters.uniq
       end
 
@@ -30,6 +34,9 @@ module Spree
           taxons = Spree::Taxon.where(id: ids).order(name: :asc)
           taxons.each { |t| options << { label: t.name, value: t.id } }
         when :property
+          values = filter['buckets'].map { |h| h['key'] }
+          values.each { |t| options << { label: t, value: t } }
+        when :option_type
           values = filter['buckets'].map { |h| h['key'] }
           values.each { |t| options << { label: t, value: t } }
         end

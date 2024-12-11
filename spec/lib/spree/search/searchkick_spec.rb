@@ -54,6 +54,29 @@ describe Spree::Search::Searchkick do
           expect(products.aggs['category_ids']['buckets']).to be_a Array
         end
       end
+
+      context 'with a filterable option type' do
+        let(:variant) { create(:variant, product: product) }
+        let(:option_type) { create(:option_type, filterable: true) }
+        let(:option_name) { option_type.name }
+
+        before do
+          product.option_types << option_type
+          product.save!
+          variant.set_option_value(option_name, 'Red')
+          product.reindex
+          Spree::Product.reindex
+        end
+
+        it 'retrieves aggregations' do
+          products = Spree::Search::Searchkick.new({}).retrieve_products
+
+          expect(products.count).to eq 1
+          expect(products.aggs).not_to be_nil
+          expect(products.aggs[option_name]).to include('doc_count' => 1)
+          expect(products.aggs[option_name]['buckets']).to be_a Array
+        end
+      end
     end
   end
 end

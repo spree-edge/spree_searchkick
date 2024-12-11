@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 
 RSpec.describe Spree::ProductsController, type: :controller do
   describe 'GET best_selling' do

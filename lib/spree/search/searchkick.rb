@@ -41,13 +41,22 @@ module Spree
 
       def aggregations
         fs = []
-        Spree::Taxonomy.filterable.each do |taxonomy|
-          fs << taxonomy.filter_name.to_sym
+
+        aggregation_classes.each do |agg_class|
+          agg_class.filterable.each do |record|
+            fs << record.filter_name.to_sym
+          end
         end
-        Spree::Property.filterable.each do |property|
-          fs << property.filter_name.to_sym
-        end
+
         fs
+      end
+
+      def aggregation_classes
+        [
+          Spree::Taxonomy, 
+          Spree::Property, 
+          Spree::OptionType
+        ]
       end
 
       def add_search_filters(query)

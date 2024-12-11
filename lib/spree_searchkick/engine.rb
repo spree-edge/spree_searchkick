@@ -12,12 +12,23 @@ module SpreeSearchkick
     end
 
     def self.activate
-      Dir.glob(File.join(File.dirname(__FILE__), '../../app/**/*_decorator*.rb')) do |c|
+      Dir.glob(File.join(File.dirname(__FILE__), '../../app/models/**/*_decorator*.rb')) do |c|
         Rails.configuration.cache_classes ? require(c) : load(c)
       end
+
+      if SpreeSearchkick::Engine.frontend_available?
+        Dir.glob(File.join(File.dirname(__FILE__), '../../app/controllers/**/*_decorator*.rb')) do |c|
+          Rails.configuration.cache_classes ? require(c) : load(c)
+        end
+      end
+
       Spree::Config.searcher_class = Spree::Search::Searchkick
     end
 
     config.to_prepare &method(:activate).to_proc
+
+    def self.frontend_available?
+      @@frontend_available ||= ::Rails::Engine.subclasses.map(&:instance).map{ |e| e.class.to_s }.include?('Spree::Frontend::Engine')
+    end
   end
 end
