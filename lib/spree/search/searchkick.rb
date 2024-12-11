@@ -54,8 +54,7 @@ module Spree
       def aggregation_classes
         [
           Spree::Taxonomy, 
-          Spree::Property, 
-          Spree::OptionType
+          Spree::Property
         ]
       end
 
