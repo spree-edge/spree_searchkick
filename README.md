@@ -41,6 +41,8 @@ By default, only the `Spree::Product` class is indexed and to control what data 
 
 To enable or disable taxons filters, go to taxonomy form and change `filterable` boolean.
 
+You need to add Spree.searcher_class = 'Spree::Search::Searchkick' in your application spree.rb
+
 Testing
 -------
 

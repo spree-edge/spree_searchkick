@@ -1,4 +1,4 @@
-module Spree::ProductsControllerDecorator
+module Searchkick::Spree::ProductsControllerDecorator
   def self.prepended(base)
     base.before_action :load_taxon, only: [:best_selling]
   end
@@ -8,7 +8,7 @@ module Spree::ProductsControllerDecorator
     params.merge(taxon: @taxon.id) if @taxon
     @searcher = build_searcher(params.merge(conversions: true))
     @products = @searcher.retrieve_products
-    
+
     render :index
   end
 
@@ -21,8 +21,8 @@ module Spree::ProductsControllerDecorator
   private
 
   def load_taxon
-    @taxon = Spree::Taxon.friendly.find(params[:id]) if params[:id]
+    @taxon = ::Spree::Taxon.friendly.find(params[:id]) if params[:id]
   end
 end
 
-Spree::ProductsController.prepend(Spree::ProductsControllerDecorator)
+Spree::ProductsController.prepend(Searchkick::Spree::ProductsControllerDecorator)

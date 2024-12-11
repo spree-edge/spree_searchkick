@@ -1,4 +1,4 @@
-module Spree::ProductDecorator
+module Searchkick::Spree::ProductDecorator
   def self.prepended(base)
     base.searchkick word_start: [:name], settings: { number_of_replicas: 0 } unless base.respond_to?(:searchkick_index)
 
@@ -12,7 +12,7 @@ module Spree::ProductDecorator
 
     def base.autocomplete(keywords)
       if keywords
-        Spree::Product.search(
+        ::Spree::Product.search(
           keywords,
           fields: autocomplete_fields,
           match: :word_start,
@@ -22,7 +22,7 @@ module Spree::ProductDecorator
           where: search_where,
         ).map(&:name).map(&:strip).uniq
       else
-        Spree::Product.search(
+        ::Spree::Product.search(
           "*",
           fields: autocomplete_fields,
           load: false,
@@ -54,11 +54,11 @@ module Spree::ProductDecorator
       taxon_names: taxon_and_ancestors.map(&:name),
     }
 
-    Spree::Property.all.each do |prop|
+    ::Spree::Property.all.each do |prop|
       json.merge!(Hash[prop.name.downcase, property(prop.name)])
     end
 
-    Spree::Taxonomy.all.each do |taxonomy|
+    ::Spree::Taxonomy.all.each do |taxonomy|
       json.merge!(Hash["#{taxonomy.name.downcase}_ids", taxon_by_taxonomy(taxonomy.id).map(&:id)])
     end
 
@@ -70,4 +70,4 @@ module Spree::ProductDecorator
   end
 end
 
-Spree::Product.prepend(Spree::ProductDecorator)
+::Spree::Product.prepend(Searchkick::Spree::ProductDecorator)
